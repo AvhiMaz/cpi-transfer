@@ -3,15 +3,15 @@
 pub const ID: [u8; 32] = [0; 32];
 
 use pinocchio::{
-    ProgramResult,
     account_info::AccountInfo,
     entrypoint,
     instruction::{AccountMeta, Instruction},
-    msg,
     program::invoke_signed,
     program_error::ProgramError,
     pubkey::Pubkey,
+    ProgramResult,
 };
+use pinocchio_log::log;
 
 entrypoint!(process_instruction);
 
@@ -21,7 +21,7 @@ pub fn process_instruction(
     instruction_data: &[u8],
 ) -> ProgramResult {
     if accounts.len() < 2 {
-        msg!("Error: Not enough account keys.");
+        log!("Error: Not enough account keys.");
         return Err(ProgramError::NotEnoughAccountKeys);
     }
 
@@ -29,28 +29,26 @@ pub fn process_instruction(
     let to = &accounts[1];
 
     if !from.is_signer() {
-        msg!("Error: Missing required signature.");
+        log!("Error: Missing required signature.");
         return Err(ProgramError::MissingRequiredSignature);
     }
 
     let amount = if instruction_data.len() >= 8 {
         u64::from_le_bytes(instruction_data[..8].try_into().unwrap())
     } else {
-        msg!("Error: Invalid instruction data.");
+        log!("Error: Invalid instruction data.");
         return Err(ProgramError::InvalidInstructionData);
     };
 
-    let message = format!(
-        "Transferring {:?} lamports from {:?} to {:?}",
+    log!(
+        "Transferring {} lamports from {} to {}",
         amount,
         from.key(),
         to.key()
     );
 
-    msg!(&message);
-
     if from.lamports() < amount {
-        msg!("Error: Sender does not have enough lamports!");
+        log!("Error: Sender does not have enough lamports!");
         return Err(ProgramError::InsufficientFunds);
     }
 
@@ -71,6 +69,6 @@ pub fn process_instruction(
 
     invoke_signed(&instruction, &[&from.clone(), &to.clone()], &[])?;
 
-    msg!("Transfer complete!");
+    log!("Transfer complete!");
     Ok(())
 }
