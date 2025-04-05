@@ -7,6 +7,8 @@ import {
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
 
+import { expect, test } from "bun:test";
+
 const connection = new Connection("http://127.0.0.1:8899", "confirmed");
 
 const PROGRAM_ID = new PublicKey(
@@ -16,7 +18,7 @@ const PROGRAM_ID = new PublicKey(
 const sender = Keypair.generate();
 const recipient = Keypair.generate();
 
-async function main() {
+test("transfer", async () => {
   console.log("Airdropping SOL...");
   const airdropSignature = await connection.requestAirdrop(
     sender.publicKey,
@@ -57,6 +59,7 @@ async function main() {
 
   console.log("Sender Balance After:", senderBalanceAfter);
   console.log("Recipient Balance After:", recipientBalanceAfter);
-}
 
-main().catch(console.error);
+  expect(senderBalanceAfter).toBeLessThan(senderBalanceBefore);
+  expect(recipientBalanceAfter).toBe(receiverBalanceBefore + transferAmount);
+});
