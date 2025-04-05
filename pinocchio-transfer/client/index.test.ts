@@ -54,6 +54,9 @@ test("transfer", async () => {
   ]);
   console.log("Transaction successful! Signature:", signature);
 
+  const { value } = await connection.simulateTransaction(transaction, [sender]);
+  console.log("Logs:", value.logs);
+
   let senderBalanceAfter = await connection.getBalance(sender.publicKey);
   let recipientBalanceAfter = await connection.getBalance(recipient.publicKey);
 
