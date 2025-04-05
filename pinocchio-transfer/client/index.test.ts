@@ -6,7 +6,6 @@ import {
   Transaction,
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
-
 import { expect, test } from "bun:test";
 
 const connection = new Connection("http://127.0.0.1:8899", "confirmed");
@@ -37,7 +36,6 @@ test("transfer", async () => {
   instructionData.writeBigUInt64LE(BigInt(transferAmount));
 
   console.log("Creating transaction...");
-
   const transaction = new Transaction().add({
     keys: [
       { pubkey: sender.publicKey, isSigner: true, isWritable: true },
@@ -54,8 +52,18 @@ test("transfer", async () => {
   ]);
   console.log("Transaction successful! Signature:", signature);
 
-  const { value } = await connection.simulateTransaction(transaction, [sender]);
-  console.log("Logs:", value.logs);
+  // Fetch transaction details to get CU consumed
+  console.log("Fetching transaction details...");
+  const txDetails = await connection.getTransaction(signature, {
+    commitment: "confirmed",
+    maxSupportedTransactionVersion: 0, // Supports legacy and versioned transactions
+  });
+
+  if (txDetails?.meta?.computeUnitsConsumed !== undefined) {
+    console.log("Compute Units Consumed:", txDetails.meta.computeUnitsConsumed);
+  } else {
+    console.log("Compute Units data not available.");
+  }
 
   let senderBalanceAfter = await connection.getBalance(sender.publicKey);
   let recipientBalanceAfter = await connection.getBalance(recipient.publicKey);

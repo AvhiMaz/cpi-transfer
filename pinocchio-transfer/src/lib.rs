@@ -40,13 +40,6 @@ pub fn process_instruction(
         return Err(ProgramError::InvalidInstructionData);
     };
 
-    log!(
-        "Transferring {} lamports from {} to {}",
-        amount,
-        from.key(),
-        to.key()
-    );
-
     if from.lamports() < amount {
         log!("Error: Sender does not have enough lamports!");
         return Err(ProgramError::InsufficientFunds);
@@ -69,6 +62,5 @@ pub fn process_instruction(
 
     invoke_signed(&instruction, &[&from.clone(), &to.clone()], &[])?;
 
-    log!("Transfer complete!");
     Ok(())
 }
